@@ -1,31 +1,49 @@
 import csv
-
 from PIL import Image
-
+import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
+import os
 
 LABEL_NAMES = ['background', 'kart', 'pickup', 'nitro', 'bomb', 'projectile']
 
 
 class SuperTuxDataset(Dataset):
     def __init__(self, dataset_path, transform=None):
-
-        # parsing labels using python csv library
-        labels = []
-
-        labels_csv_path = dataset_path + '/labels.csv'
-        with open(labels_csv_path, 'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            next(csv_reader)  # bypassing the header row
-            for row in csv_reader:
-                file_name, label = row
-                labels.append((file_name, int(label)))
-
-        # initializing variables
-        self.dataset_path = dataset_path
         self.transform = transform
-        self.labels = labels
+
+        # setting the dataset path
+        self.dataset_path = dataset_path
+
+        # parsing labels using csv library
+        labels = []
+        with open(os.path.join(dataset_path, 'labels.csv'), 'r') as csv_file:
+        #with open('../data/train/labels.csv', mode='r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            next(csv_reader)
+            for row in csv_reader:
+                file_name, label, null = row
+                img_path = os.path.join(dataset_path, file_name)
+                #img_path = os.path.join('../data/train/', file_name)
+                image = Image.open(img_path)
+                image = transforms.ToTensor()(image)
+
+                # number label categories
+                if label == "background":
+                    label_number = 0
+                elif label == "kart":
+                    label_number = 1
+                elif label == "pickup":
+                    label_number = 2
+                elif label == "nitro":
+                    label_number = 3
+                elif label == "bomb":
+                    label_number = 4
+                else:
+                    label_number = 5  # projectile
+                labels.append((image, int(label_number)))
+
+        self.labels = labels  # additional self variable
 
         # raise NotImplementedError('SuperTuxDataset.__init__')
 
@@ -36,13 +54,9 @@ class SuperTuxDataset(Dataset):
 
     def __getitem__(self, idx):
         # image is torch.Tensor of size (3,64,64) with range [0,1]
-        img_path = self.dataset_path + '/images/' + self.labels[idx][0]
-        image = Image.open(img_path)
+        image, label = self.labels[idx]
 
-        # label is int
-        label = self.labels[idx][1]
-
-        # return tuple of image, label
+        # transform if it exists
         if self.transform:
             image = self.transform(image)
 

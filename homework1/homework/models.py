@@ -1,60 +1,68 @@
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 
 
 class ClassificationLoss(torch.nn.Module):
     def forward(self, input, target):
-        """
-        Your code here
+        # mean(-log(softmax(input)_label))
+        # @input:  torch.Tensor((B,C))
+        # @target: torch.Tensor((B,), dtype=torch.int64)
+        # @return:  torch.Tensor((,))
+        return F.cross_entropy(input, target)
 
-        Compute mean(-log(softmax(input)_label))
-
-        @input:  torch.Tensor((B,C))
-        @target: torch.Tensor((B,), dtype=torch.int64)
-
-        @return:  torch.Tensor((,))
-
-        Hint: Don't be too fancy, this is a one-liner
-        """
-        raise NotImplementedError('ClassificationLoss.forward')
+        # raise NotImplementedError('ClassificationLoss.forward')
 
 
 class LinearClassifier(torch.nn.Module):
     def __init__(self):
-        super().__init__()
+        super(LinearClassifier, self).__init__()
+        #  define the linear model and all layers
+        self.linear = nn.Linear(3*64*64, 6)
 
-        """
-        Your code here
-        """
-        raise NotImplementedError('LinearClassifier.__init__')
+        # raise NotImplementedError('LinearClassifier.__init__')
 
     def forward(self, x):
-        """
-        Your code here
+        # @x: torch.Tensor((B,3,64,64))
+        # @return: torch.Tensor((B,6))
 
-        @x: torch.Tensor((B,3,64,64))
-        @return: torch.Tensor((B,6))
-        """
-        raise NotImplementedError('LinearClassifier.forward')
+        # flatten x
+        x = x.view(x.size(0), -1)
+
+        # pass through linear model
+        x = self.linear(x)
+        return x
+
+        # raise NotImplementedError('LinearClassifier.forward')
 
 
 class MLPClassifier(torch.nn.Module):
     def __init__(self):
-        super().__init__()
+        super(MLPClassifier, self).__init__()
+        input_size = 3 * 64 * 64  # dimensions of data
+        hidden_layer_size = 250  # tips for choosing this?
+        output_layer_size = 6  # number of labels
 
-        """
-        Your code here
-        """
-        raise NotImplementedError('MLPClassifier.__init__')
+        # layers of MLP
+        self.fc1 = nn.Linear(input_size, hidden_layer_size)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_layer_size, output_layer_size)
+        # raise NotImplementedError('MLPClassifier.__init__')
 
     def forward(self, x):
-        """
-        Your code here
+        # @x: torch.Tensor((B,3,64,64))
+        # @return: torch.Tensor((B,6))
 
-        @x: torch.Tensor((B,3,64,64))
-        @return: torch.Tensor((B,6))
-        """
-        raise NotImplementedError('MLPClassifier.forward')
+        # flatten x
+        x = x.view(x.size(0), -1)
+
+        # pass through MLP
+        x = self.fc1(x)
+        x = self.relu1(x)
+        x = self.fc2(x)
+        return x
+
+        # raise NotImplementedError('MLPClassifier.forward')
 
 
 model_factory = {
